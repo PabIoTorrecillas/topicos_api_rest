@@ -21,13 +21,29 @@ class Product
     public function create()
     {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (sku, name, description, price, stock) 
-                  VALUES (?, ?, ?, ?, ?)";
-        
+                  SET sku=:sku, name=:name, description=:description, price=:price, stock=:stock, created_at=:created_at";
+
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("sssdi", $this->sku, $this->name, $this->description, $this->price, $this->stock);
-        
-        return $stmt->execute();
+
+        $this->sku = htmlspecialchars(strip_tags($this->sku));
+        $this->name = htmlspecialchars(strip_tags($this->name));   
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->price = htmlspecialchars(strip_tags($this->price));
+        $this->stock = htmlspecialchars(strip_tags($this->stock));
+        $this->created_at = date('Y-m-d H:i:s');
+
+        $stmt->bindParam(":sku", $this->sku);
+        $stmt->bindParam(":name", $this->name);
+        $stmt->bindParam(":description", $this->description);
+        $stmt->bindParam(":price", $this->price);
+        $stmt->bindParam(":stock", $this->stock);
+        $stmt->bindParam(":created_at", $this->created_at);
+
+        if ($stmt->execute()) {
+            $this->id = $this->conn->lastInsertId();
+            return true;
+        }
+        return false;
     }
 
     public function read()
@@ -49,22 +65,43 @@ class Product
     public function update()
     {
         $query = "UPDATE " . $this->table_name . " 
-                  SET sku = ?, name = ?, description = ?, price = ?, stock = ? 
-                  WHERE id = ?";
-        
+                  SET name = :name, description = :description, price = :price, stock = :stock, updated_at = :updated_at 
+                  WHERE id = :id";
+
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("sssdi", $this->sku, $this->name, $this->description, $this->price, $this->stock, $this->id);
-        
-        return $stmt->execute();
+
+        $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->price = htmlspecialchars(strip_tags($this->price));
+        $this->stock = htmlspecialchars(strip_tags($this->stock));
+        $this->updated_at = date('Y-m-d H:i:s');
+        $this->id = htmlspecialchars(strip_tags($this->id));
+
+        $stmt->bindParam(':name', $this->name);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':price', $this->price);
+        $stmt->bindParam(':stock', $this->stock);
+        $stmt->bindParam(':updated_at', $this->updated_at);
+        $stmt->bindParam(':id', $this->id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
     
     public function delete()
     {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id = ?";
+        $query = "DELETE FROM " . $this->table_name . " WHERE id = :id";
+
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $this->id);
-        
-        return $stmt->execute();
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(':id', $this->id);
+
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
     }
 }
 ?>
